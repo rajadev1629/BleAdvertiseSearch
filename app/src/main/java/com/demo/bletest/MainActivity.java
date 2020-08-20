@@ -58,9 +58,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final String CHANNEL_ID = "BLE_CHANNEL";
 
 
-
-
-
     private ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
@@ -71,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return;
 
             builder.append("\n" + result.getDevice().getAddress() + result.getScanRecord().getDeviceName());
+            Log.e("kkkkkk", "onScanResult: " + result.getDevice().getAddress() + result.getScanRecord().getDeviceName());
             mText.setText(builder.toString());
             long time = System.currentTimeMillis();
 
@@ -105,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mAdvertiseButton.setOnClickListener(this);
 
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
         mText.setText(mBluetoothAdapter.getAddress() + " : " + mBluetoothAdapter.getRemoteDevice(mBluetoothAdapter.getAddress()).getName());
         if (mBluetoothAdapter == null) {
             // Device does not support Bluetooth
