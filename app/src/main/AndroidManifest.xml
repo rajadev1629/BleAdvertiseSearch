@@ -27,7 +27,9 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".BleService"/>
+        <service android:name=".BleScannerService"/>
+        <service android:name=".BleAdveriseService"/>
+
     </application>
 
 </manifest>

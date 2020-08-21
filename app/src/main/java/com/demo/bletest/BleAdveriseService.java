@@ -20,28 +20,24 @@ import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
-public class BleService extends Service {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
-
-    private BluetoothLeScanner mBluetoothLeScanner;
+public class BleAdveriseService extends Service {
     public static final String TAG = "kkkkkkk";
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mBluetoothLeScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
-        discover();
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            advertise();
+        }
     }
 
     @Override
@@ -50,10 +46,9 @@ public class BleService extends Service {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-
         Notification notification = new NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
                 .setContentTitle(input)
-                .setContentText(input + " Running")
+                .setContentText(input + "Corey Patient : Contact tracing is on")
                 .setSmallIcon(R.drawable.ic_launcher_background)
                 .setContentIntent(pendingIntent)
                 .build();
@@ -74,63 +69,9 @@ public class BleService extends Service {
     }
 
 
-    private void discover() {
-        List<ScanFilter> filters = new ArrayList<ScanFilter>();
-
-        ScanFilter filter = new ScanFilter.Builder()
-                .setServiceUuid(new ParcelUuid(UUID.fromString(getString(R.string.ble_uuid))))
-                .build();
-        filters.add(filter);
-
-        ScanSettings settings = new ScanSettings.Builder()
-                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                .build();
-
-        mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
-
-       /* mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mBluetoothLeScanner.stopScan(mScanCallback);
-            }
-        }, 10000);*/
-    }
-
-    private ScanCallback mScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-            if (result == null
-                    || result.getDevice() == null
-                    || TextUtils.isEmpty(result.getDevice().getAddress()))
-                return;
-
-            Log.e(TAG, "onScanResult: " + result.getDevice().getAddress() + result.getScanRecord().getDeviceName());
-        }
-
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            Log.e("BLE", "Discovery onScanFailed: " + errorCode);
-            super.onScanFailed(errorCode);
-        }
-    };
-
-
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void advertise() {
         BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
-
-        /*AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
-                .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
-                .setConnectable(false)
-                .setTimeout(10000)
-                .build();*/
 
         AdvertisingSetParameters parameters = (new AdvertisingSetParameters.Builder())
                 .setLegacyMode(true) // True by default, but set here as a reminder.
@@ -146,19 +87,6 @@ public class BleService extends Service {
                 .setIncludeDeviceName(false)
                 .addServiceUuid(pUuid)
                 .build();
-
-        /*AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
-            @Override
-            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-                super.onStartSuccess(settingsInEffect);
-            }
-
-            @Override
-            public void onStartFailure(int errorCode) {
-                Log.e( "BLE", "Advertising onStartFailure: " + errorCode );
-                super.onStartFailure(errorCode);
-            }
-        };*/
 
 
         AdvertisingSetCallback callback = new AdvertisingSetCallback() {
@@ -184,23 +112,5 @@ public class BleService extends Service {
             }
         };
         advertiser.startAdvertisingSet(parameters, data, null, null, null, callback);
-
-
-       /* if (currentAdvertisingSet != null) {
-            // After onAdvertisingSetStarted callback is called, you can modify the
-            // advertising data and scan response data:
-            currentAdvertisingSet.setAdvertisingData(new AdvertiseData.Builder().
-                    setIncludeDeviceName(true).setIncludeTxPowerLevel(true).build());
-            // Wait for onAdvertisingDataSet callback...
-            currentAdvertisingSet.setScanResponseData(new
-                    AdvertiseData.Builder().addServiceUuid(new ParcelUuid(UUID.randomUUID())).build());
-            // Wait for onScanResponseDataSet callback...
-
-            // When done with the advertising:
-            advertiser.stopAdvertisingSet(callback);
-        }*/
-
-
-        /* advertiser.startAdvertising( settings, data, advertisingCallback );*/
     }
 }
